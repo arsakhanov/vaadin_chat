@@ -11,18 +11,25 @@ import test.chat2.model.ChatMessage;
 import test.chat2.service.impl.ChatMessageServiceImpl;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 @Component
 public class Storage {
 
+    private final static int N = 5;
     @Getter
     private Queue<ChatMessage> messages = new ConcurrentLinkedQueue<>();
+
+    public void setMessages(ChatMessage message) {
+        if(messages.size() < N){
+            messages.add(message);
+        } else {
+            messages.remove();
+            messages.add(message);
+        }
+    }
+
     private ComponentEventBus eventBus = new ComponentEventBus(new Div());
     @Getter
     private Set<String> users = new HashSet<>();
@@ -39,7 +46,7 @@ public class Storage {
 
     public void addRecord(String name, String message) {
         ChatMessage chatMessage = new ChatMessage(name, message);
-        messages.add(chatMessage);
+        setMessages(chatMessage);
         eventBus.fireEvent(new ChatEvent());
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
@@ -49,7 +56,7 @@ public class Storage {
     }
 
     public void addRecordJoined(String user) {
-        messages.add(new ChatMessage("", user));
+        setMessages(new ChatMessage("", user));
         eventBus.fireEvent(new ChatEvent());
         users.add(user);
     }
